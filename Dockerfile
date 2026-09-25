@@ -40,5 +40,9 @@ WORKDIR /workspace
 # Mounted repos are usually owned by another UID; git would refuse to touch them
 RUN git config --global --add safe.directory '*'
 
+RUN mkdir -p /home/node/.claude /home/node/.config/gh \
+ && echo '{}' > /home/node/.claude.json \
+ && chown -R node:node /home/node
+
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["claude", "remote-control"]
