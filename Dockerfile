@@ -36,9 +36,8 @@ USER node
 WORKDIR /workspace
 
 # Native installer (npm install is deprecated); lands in ~/.local/bin
-RUN curl -fsSL https://claude.ai/install.sh -o /tmp/install.sh \
- && bash -x /tmp/install.sh "${CLAUDE_CODE_VERSION}" \
- && ls -la /home/node/.local/bin
+RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
+ && npm cache clean --force
 
 # Mounted repos are usually owned by another UID; git would refuse to touch them
 RUN git config --global --add safe.directory '*'
