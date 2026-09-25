@@ -1,11 +1,9 @@
 FROM node:24-bookworm-slim
 
-# Release channel (stable/latest) or a pinned version like 2.1.250
-ARG CLAUDE_CODE_VERSION=stable
+ARG CLAUDE_CODE_VERSION=latest
 
 ENV LANG=C.UTF-8 \
-    NPM_CONFIG_UPDATE_NOTIFIER=false \
-    PATH=/home/node/.local/bin:$PATH
+    NPM_CONFIG_UPDATE_NOTIFIER=false
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       git \
@@ -27,6 +25,10 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
  && apt-get update && apt-get install -y --no-install-recommends gh \
  && rm -rf /var/lib/apt/lists/*
 
+# Install as root, otherwise npm cannot write to /usr/local/lib/node_modules
+RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
+ && npm cache clean --force
+
 # Credentials, project trust and gh config live here
 RUN mkdir -p /home/node/.claude /home/node/.config/gh \
  && touch /home/node/.claude.json \
@@ -34,10 +36,6 @@ RUN mkdir -p /home/node/.claude /home/node/.config/gh \
 
 USER node
 WORKDIR /workspace
-
-# Native installer (npm install is deprecated); lands in ~/.local/bin
-RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
- && npm cache clean --force
 
 # Mounted repos are usually owned by another UID; git would refuse to touch them
 RUN git config --global --add safe.directory '*'
